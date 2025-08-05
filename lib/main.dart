@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:sharma_photography_admin/enums.dart';
+import 'package:sharma_photography_admin/imageUpload.dart';
 
 void main() {
   runApp(const MyApp());
@@ -27,6 +29,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   var descController = TextEditingController();
+  var tokenController = TextEditingController();
   var pickedFile;
 
   @override
@@ -39,6 +42,10 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         child: ListView(
           children: <Widget>[
+            TextField(
+              controller: tokenController,
+              decoration: InputDecoration(labelText: "Github Token"),
+            ),
             ElevatedButton(
               onPressed: () async {
                 pickedFile = await ImagePicker().pickImage(
@@ -61,8 +68,12 @@ class _MyHomePageState extends State<MyHomePage> {
               controller: descController,
               decoration: InputDecoration(labelText: "Description"),
             ),
-            ElevatedButton(onPressed: () {}, child: Text("Add new Photo")),
-            ElevatedButton(onPressed: () {}, child: Text("Add new Painting")),
+            ElevatedButton(onPressed: () {
+              uploadImage(tokenController.text, pickedFile.path, descController.text, ImageType.photo);
+            }, child: Text("Add new Photo")),
+            ElevatedButton(onPressed: () {
+              uploadImage(tokenController.text, pickedFile.path, descController.text, ImageType.painting);
+            }, child: Text("Add new Painting")),
           ],
         ),
       ),
