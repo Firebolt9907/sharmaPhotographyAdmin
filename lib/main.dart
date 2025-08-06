@@ -38,6 +38,7 @@ class _MyHomePageState extends State<MyHomePage> {
   var tokenController = TextEditingController();
   var pickedFile;
   var hideTokenField = false;
+  var loading = false;
 
   @override
   void initState() {
@@ -105,11 +106,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 pickedFile = await ImagePicker().pickImage(
                   source: ImageSource.gallery,
                 );
-                if (pickedFile != null) {
-                  var location = await getLocation(pickedFile.path);
-                  print("Location: $location");
-                  setState(() {});
-                }
+                // if (pickedFile != null) {
+                //   var location = await getLocation(pickedFile.path);
+                //   print("Location: $location");
+                setState(() {});
+                // }
               },
               child: Text("Select Image"),
             ),
@@ -126,25 +127,44 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             ElevatedButton(
               onPressed: () {
+                if (loading) return;
+                setState(() {
+                  loading = true;
+                });
                 uploadImage(
                   tokenController.text,
                   pickedFile.path,
                   descController.text,
                   ImageType.photo,
                 );
+                setState(() {
+                  loading = false;
+                });
               },
               child: Text("Add new Photo"),
             ),
             ElevatedButton(
               onPressed: () {
+                if (loading) return;
+                setState(() {
+                  loading = true;
+                });
                 uploadImage(
                   tokenController.text,
                   pickedFile.path,
                   descController.text,
                   ImageType.painting,
                 );
+                setState(() {
+                  loading = false;
+                });
               },
               child: Text("Add new Painting"),
+            ),
+            AnimatedOpacity(
+              opacity: loading ? 1 : 0,
+              duration: Duration(milliseconds: 100),
+              child: CircularProgressIndicator(),
             ),
           ],
         ),
