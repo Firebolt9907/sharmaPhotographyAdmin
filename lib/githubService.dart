@@ -16,17 +16,17 @@ class GitHubService {
     required String token,
     required String owner,
     required String repo,
-  })  : _token = token,
-        _owner = owner,
-        _repo = repo;
+  }) : _token = token,
+       _owner = owner,
+       _repo = repo;
 
   Uri _apiUrl(String path) =>
       Uri.parse('https://api.github.com/repos/$_owner/$_repo/contents/$path');
 
   Map<String, String> get _headers => {
-        'Authorization': 'Bearer $_token',
-        'Accept': 'application/vnd.github.v3+json',
-      };
+    'Authorization': 'Bearer $_token',
+    'Accept': 'application/vnd.github.v3+json',
+  };
 
   /// Orchestrates the entire process: uploads an image, then updates a JSON index file.
   ///
@@ -39,11 +39,11 @@ class GitHubService {
     required String targetImagePath,
     required String jsonIndexPath,
     Map<String, dynamic> additionalMetadata = const {},
-    required ImageType imageType
+    required ImageType imageType,
   }) async {
     // STEP 1: Upload the image file
     print("Step 1: Uploading image to $targetImagePath...");
-    final String commitMessage = 'feat: add image ${p.basename(targetImagePath)}';
+    final String commitMessage = 'Added image ${p.basename(targetImagePath)}';
     final uploadResponse = await _uploadFile(
       path: targetImagePath,
       contentBytes: imageBytes,
@@ -59,14 +59,17 @@ class GitHubService {
       'fileName': p.basename(targetImagePath),
       'url': downloadUrl,
       'uploadedAt': DateTime.now().toIso8601String(),
-      'imageType': imageType.toString().split('.').last, // Convert enum to string
+      'imageType': imageType
+          .toString()
+          .split('.')
+          .last, // Convert enum to string
       ...additionalMetadata, // Merge any extra data
     };
-    
+
     await _appendToJsoNArray(
       path: jsonIndexPath,
       newItem: newImageData,
-      commitMessage: 'docs: update image index for ${p.basename(targetImagePath)}',
+      commitMessage: 'Updated image index for ${p.basename(targetImagePath)}',
     );
 
     print("Process complete! Image uploaded and index updated.");
@@ -80,21 +83,28 @@ class GitHubService {
     required String commitMessage,
   }) async {
     final String contentBase64 = base64Encode(contentBytes);
-    
+
     final body = json.encode({
       'message': commitMessage,
       'content': contentBase64,
     });
 
-    final response = await http.put(_apiUrl(path), headers: _headers, body: body);
+    final response = await http.put(
+      _apiUrl(path),
+      headers: _headers,
+      body: body,
+    );
 
-    if (response.statusCode == 201) { // 201 for Created
+    if (response.statusCode == 201) {
+      // 201 for Created
       return json.decode(response.body);
     } else if (response.statusCode == 422) {
       print("file already exists, cancelling upload");
       return json.decode(response.body); // Return the error response as is
     } else {
-      throw Exception('Failed to upload file "$path": ${response.statusCode} ${response.body}');
+      throw Exception(
+        'Failed to upload file "$path": ${response.statusCode} ${response.body}',
+      );
     }
   }
 
@@ -115,33 +125,45 @@ class GitHubService {
       currentSha = responseBody['sha'];
       print(responseBody);
       print(responseBody['content']);
-      final contentString = utf8.decode(base64Decode(responseBody['content'].replaceAll(RegExp(r'\s+'), '')));
+      final contentString = utf8.decode(
+        base64Decode(responseBody['content'].replaceAll(RegExp(r'\s+'), '')),
+      );
       jsonData = json.decode(contentString);
     } else if (getResponse.statusCode == 404) {
       jsonData = {jsonArrayKey: []};
     } else {
-      throw Exception('Failed to get JSON file: ${getResponse.statusCode} ${getResponse.body}');
+      throw Exception(
+        'Failed to get JSON file: ${getResponse.statusCode} ${getResponse.body}',
+      );
     }
 
     if (jsonData[jsonArrayKey] is! List) {
       jsonData[jsonArrayKey] = [];
     }
     final List<dynamic> dataList = jsonData[jsonArrayKey];
-    dataList.add(newItem);
+    dataList.insert(0, newItem);
 
     final updatedContentString = json.encode(jsonData);
-    final updatedContentBase64 = base64Encode(utf8.encode(updatedContentString));
-    
+    final updatedContentBase64 = base64Encode(
+      utf8.encode(updatedContentString),
+    );
+
     final requestBody = json.encode({
       'message': commitMessage,
       'content': updatedContentBase64,
       if (currentSha != null) 'sha': currentSha,
     });
-    
-    final putResponse = await http.put(_apiUrl(path), headers: _headers, body: requestBody);
+
+    final putResponse = await http.put(
+      _apiUrl(path),
+      headers: _headers,
+      body: requestBody,
+    );
 
     if (putResponse.statusCode != 200 && putResponse.statusCode != 201) {
-      throw Exception('Failed to update JSON file: ${putResponse.statusCode} ${putResponse.body}');
+      throw Exception(
+        'Failed to update JSON file: ${putResponse.statusCode} ${putResponse.body}',
+      );
     }
   }
 }

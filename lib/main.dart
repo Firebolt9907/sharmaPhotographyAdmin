@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:sharma_photography_admin/enums.dart';
@@ -36,22 +37,69 @@ class _MyHomePageState extends State<MyHomePage> {
   var descController = TextEditingController();
   var tokenController = TextEditingController();
   var pickedFile;
+  var hideTokenField = false;
+
+  @override
+  void initState() {
+    super.initState();
+    readToken();
+  }
+
+  String? readToken() {
+    AndroidOptions _getAndroidOptions() =>
+        const AndroidOptions(encryptedSharedPreferences: true);
+    final storage = FlutterSecureStorage(aOptions: _getAndroidOptions());
+
+    storage.read(key: "token").then((value) {
+      if (value == null) {
+        return null;
+      } else {
+        print(value);
+        setState(() {
+          tokenController.text = value;
+          hideTokenField = true;
+        });
+        return value;
+      }
+    });
+
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text("Add New Photo or Painting"),
+        title: GestureDetector(
+          child: Text("Add New Photo or Painting"),
+          onTap: () {
+            setState(() {
+              hideTokenField = !hideTokenField;
+            });
+          },
+        ),
       ),
       body: Center(
         child: ListView(
           children: <Widget>[
-            TextField(
-              controller: tokenController,
-              decoration: InputDecoration(labelText: "Github Token"),
-              obscureText: true,
-            ),
+            !hideTokenField
+                ? TextField(
+                    controller: tokenController,
+                    decoration: InputDecoration(labelText: "Github Token"),
+                    obscureText: true,
+                    onChanged: (value) async {
+                      AndroidOptions _getAndroidOptions() =>
+                          const AndroidOptions(
+                            encryptedSharedPreferences: true,
+                          );
+                      final storage = FlutterSecureStorage(
+                        aOptions: _getAndroidOptions(),
+                      );
+                      await storage.write(key: "token", value: value);
+                    },
+                  )
+                : Container(),
             ElevatedButton(
               onPressed: () async {
                 pickedFile = await ImagePicker().pickImage(
