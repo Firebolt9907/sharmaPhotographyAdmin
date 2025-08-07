@@ -126,12 +126,12 @@ class _MyHomePageState extends State<MyHomePage> {
               decoration: InputDecoration(labelText: "Description"),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (loading) return;
                 setState(() {
                   loading = true;
                 });
-                uploadImage(
+                await uploadImage(
                   tokenController.text,
                   pickedFile.path,
                   descController.text,
@@ -144,12 +144,12 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text("Add new Photo"),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (loading) return;
                 setState(() {
                   loading = true;
                 });
-                uploadImage(
+                await uploadImage(
                   tokenController.text,
                   pickedFile.path,
                   descController.text,
@@ -161,11 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               child: Text("Add new Painting"),
             ),
-            AnimatedOpacity(
-              opacity: loading ? 1 : 0,
-              duration: Duration(milliseconds: 100),
-              child: CircularProgressIndicator(),
-            ),
+            Opacity(opacity: loading ? 1 : 0, child: LinearProgressIndicator()),
           ],
         ),
       ),

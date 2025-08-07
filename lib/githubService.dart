@@ -36,40 +36,51 @@ class GitHubService {
   /// - [additionalMetadata]: Optional map of other data to include in the JSON record.
   Future<void> uploadImageAndUpdateIndex({
     required Uint8List imageBytes,
-    required String targetImagePath,
+    required Uint8List webpImageBytes,
+    required String targetJPGPath,
+    required String targetWEBPPath,
     required String jsonIndexPath,
     Map<String, dynamic> additionalMetadata = const {},
     required ImageType imageType,
   }) async {
-    // STEP 1: Upload the image file
-    print("Step 1: Uploading image to $targetImagePath...");
-    final String commitMessage = 'Added image ${p.basename(targetImagePath)}';
-    final uploadResponse = await _uploadFile(
-      path: targetImagePath,
+    // STEP 1 & 2: Upload the image file
+    print("Step 1: Uploading JPG image to $targetJPGPath...");
+    String commitMessage = 'Added JPG ${p.basename(targetJPGPath)}';
+    var uploadResponse = await _uploadFile(
+      path: targetJPGPath,
       contentBytes: imageBytes,
       commitMessage: commitMessage,
     );
 
-    final String downloadUrl = uploadResponse['content']['download_url'];
-    print("Image uploaded successfully. URL: $downloadUrl");
+    final String jpgDownloadUrl = uploadResponse['content']['download_url'];
+    print("JPG uploaded successfully. URL: $jpgDownloadUrl");
+    print("Step 2: Uploading WEBP image to $targetWEBPPath...");
 
-    // STEP 2: Prepare the metadata and update the JSON index
+    commitMessage = 'Added WEBP ${p.basename(targetWEBPPath)}';
+    uploadResponse = await _uploadFile(
+      path: targetWEBPPath,
+      contentBytes: webpImageBytes,
+      commitMessage: commitMessage,
+    );
+
+    final String webpDownloadUrl = uploadResponse['content']['download_url'];
+    print("WEBP uploaded successfully. URL: $webpDownloadUrl");
+
+    // STEP 3: Prepare the metadata and update the JSON index
     print("Step 2: Updating JSON index at $jsonIndexPath...");
     final Map<String, dynamic> newImageData = {
-      'fileName': p.basename(targetImagePath),
-      'url': downloadUrl,
+      'fileName': p.basename(targetJPGPath),
+      'jpgUrl': jpgDownloadUrl,
+      'webpUrl': webpDownloadUrl,
       'uploadedAt': DateTime.now().toIso8601String(),
-      'imageType': imageType
-          .toString()
-          .split('.')
-          .last, // Convert enum to string
-      ...additionalMetadata, // Merge any extra data
+      'imageType': imageType.toString().split('.').last,
+      ...additionalMetadata,
     };
 
     await _appendToJsoNArray(
       path: jsonIndexPath,
       newItem: newImageData,
-      commitMessage: 'Updated image index for ${p.basename(targetImagePath)}',
+      commitMessage: 'Updated image index for ${p.basename(targetJPGPath)}',
     );
 
     print("Process complete! Image uploaded and index updated.");
