@@ -1,16 +1,12 @@
-# sharma_photography_admin
+# S3 Stroke & Snap Admin app
 
-A new Flutter project.
+[Visit The Website Right Now](https://rangish.netlify.app/)  
 
-## Getting Started
+## About This Project
 
-This project is a starting point for a Flutter application.
+This is an app that utilizes the GitHub REST API to allow the photographer behind S3 Stroke & Snap to add photos to their website without my involvement.
 
-A few resources to get you started if this is your first Flutter project:
+## Technologies Used
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Flutter for straight-forward app design
+- GitHub REST API for managing database
